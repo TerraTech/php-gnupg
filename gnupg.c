@@ -785,6 +785,7 @@ PHP_FUNCTION(gnupg_adddecryptkey)
 	phpc_str_size_t passphrase_len;
 	gpgme_key_t gpgme_key;
 	gpgme_subkey_t gpgme_subkey;
+	int loopback_set = 0;
 
 	GNUPG_GETOBJ();
 
@@ -806,6 +807,10 @@ PHP_FUNCTION(gnupg_adddecryptkey)
 	while (gpgme_subkey) {
 		if (gpgme_subkey->secret == 1) {
 			PHPC_HASH_CSTR_ADD_PTR(PHPC_THIS->decryptkeys, gpgme_subkey->keyid, passphrase, passphrase_len + 1);
+			if (!loopback_set && passphrase && passphrase_len > 0) {
+				gpgme_set_pinentry_mode(PHPC_THIS->ctx, GPGME_PINENTRY_MODE_LOOPBACK);
+				loopback_set = 1;
+			}
 		}
 		gpgme_subkey = gpgme_subkey->next;
 	}
